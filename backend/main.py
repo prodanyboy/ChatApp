@@ -5,6 +5,8 @@ from database import engine, SessionLocal
 import models, schemas
 from pydantic import BaseModel
 
+#usar "pip install -r requirements.txt" en su propio entorno virtual para tener las librerías
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
