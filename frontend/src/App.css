@@ -1,42 +1,184 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #111b21;
+  color: #e9edef;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 900px;
+  background-color: #222e35;
+  border-radius: 0;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 90vh; 
+  border: 1px solid #333;
+}
+
+.login-container, .room-container {
+  padding: 40px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  gap: 15px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h1, h2 {
+  color: #e9edef;
+  margin-bottom: 10px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+p {
+  color: #8696a0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+input {
+  width: 80%;
+  max-width: 300px;
+  padding: 15px;
+  margin: 5px 0;
+  background-color: #2a3942;
+  border: 1px solid #2a3942;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.3s;
 }
 
-.card {
-  padding: 2em;
+input:focus {
+  border: 1px solid #00a884;
 }
 
-.read-the-docs {
-  color: #888;
+button {
+  width: 80%;
+  max-width: 335px;
+  padding: 15px;
+  background-color: #00a884;
+  color: #111b21;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s, transform 0.1s;
+}
+
+button:hover {
+  background-color: #00c298;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-header {
+  background-color: #202c33; 
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #333;
+}
+
+.logout-btn {
+  width: auto; 
+  background: #374045;
+  color: #ff6b6b;
+  padding: 8px 15px;
+  font-size: 14px;
+}
+
+.messages-area {
+  flex: 1;
+  padding: 20px;
+  background-color: #0b141a;
+  background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+  background-blend-mode: overlay;
+  background-size: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  position: relative;
+  line-height: 1.4;
+  word-wrap: break-word;
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+}
+
+.my-message {
+  align-self: flex-end;
+  background-color: #005c4b;
+  color: #e9edef;
+  border-top-right-radius: 0;
+}
+
+.other-message {
+  align-self: flex-start;
+  background-color: #202c33;
+  color: #e9edef;
+  border-top-left-radius: 0;
+}
+
+.message-username {
+  font-size: 11px;
+  color: #00a884;
+  margin-bottom: 4px;
+  font-weight: bold;
+  display: block;
+}
+
+.input-area {
+  padding: 10px;
+  background: #202c33;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-area input {
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  background-color: #2a3942;
+}
+
+.input-area button {
+  width: auto;
+  padding: 12px 20px;
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #374045;
+  border-radius: 3px;
 }

@@ -5,7 +5,7 @@ from database import engine, SessionLocal
 import models, schemas
 from pydantic import BaseModel
 
-models.Base.metadata.create_all(bind=engine) #esto va a crear las tablas en la db si es que no hay
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -18,15 +18,18 @@ def get_db():
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections = Dict[str, List[WebSocket]] ={}
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+
     async def connect(self, websocket: WebSocket, room_name: str):
         await websocket.accept()
         if room_name not in self.active_connections:
             self.active_connections[room_name] = []
-        self.active_connections[room_name].apppend(websocket)
+        self.active_connections[room_name].append(websocket)
+
     def disconnect(self, websocket: WebSocket, room_name: str):
         if room_name in self.active_connections:
             self.active_connections[room_name].remove(websocket)
+
     async def broadcast(self, message: str, room_name: str):
         if room_name in self.active_connections:
             for connection in self.active_connections[room_name]:
@@ -41,34 +44,68 @@ class UserLogin(BaseModel):
 @app.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if not db_user or db_user.password != user.password:
+    
+    if not db_user:
         raise HTTPException(status_code=400, detail="Usuario o contraseña incorrectos")
+
+    if db_user.password != user.password:
+        raise HTTPException(status_code=400, detail="Usuario o contraseña incorrectos")
+    
     return {"message": "Login exitoso", "username": db_user.username}
 
 @app.post("/register", response_model=schemas.UserResponse)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.username == user.username) #esto y lo de if db_user es para verificar si el usuario ya existe y si existe, le damos HTTPException
+    db_user = db.query(models.User).filter(models.User.username == user.username).first()
 
     if db_user:
         raise HTTPException(status_code=400, detail="El usuario ya existe, por favor ingresar otro usuario")
     
-    new_user = models.User(username= user.username, password=user.password) #en este caso, no vamos a encriptar la contraseña porque es un proyecto sencillo
+    new_user = models.User(username= user.username, password=user.password) 
 
-    db.add(new_user) #añado al usuario a la db
-    db.commit() # esto es para confirmar cambios
-    db.refresh(new_user) # refresheo al user para obtener su id
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
 
     return new_user
 
+@app.get("/users")
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return users
+
+@app.delete("/users/{username}")
+def delete_user(username: str, db: Session = Depends(get_db)):
+    user_to_delete = db.query(models.User).filter(models.User.username == username).first()
+    
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="El usuario no existe")
+    
+    db.delete(user_to_delete)
+    db.commit()
+    
+    return {"message": f"El usuario '{username}' ha sido eliminado con éxito"}
+
 @app.websocket("/ws/{room_name}/{username}")
-async def websocket_endpoint(websocket: WebSocket, client_id: int):
-    await manager.connect(websocket)
+async def websocket_endpoint(websocket: WebSocket, room_name: str, username: str, db: Session = Depends(get_db)):
+    await manager.connect(websocket, room_name)
+    
+    messages = db.query(models.Message).filter(models.Message.room == room_name).all()
+    
+    for msg in messages:
+        await websocket.send_text(f"{msg.sender}:{msg.content}")
+        
+    await manager.broadcast(f"🔵 {username} se unió a la sala.", room_name)
     
     try:
         while True:
-               data = await websocket.receive_text() #esperamos para recibir el texto (por eso ponemos await)
-               await manager.broadcast(f"Usuario {client_id} dice: {data}") #guardamos la id del user en una variable llamada "data"
+            data = await websocket.receive_text()
             
-    except Exception:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"El Usuario {client_id} ha abandonado el chat")
+            new_message = models.Message(room=room_name, sender=username, content=data)
+            db.add(new_message)
+            db.commit()
+            
+            await manager.broadcast(f"{username}:{data}", room_name)
+            
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, room_name)
+        await manager.broadcast(f"🔴 {username} salió de la sala.", room_name)
